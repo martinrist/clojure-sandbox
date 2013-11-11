@@ -10,10 +10,6 @@
 (defn factors [number]
  (filter (factor-of-number? number) (range 1 number)))
 
-(defn factors [number]
- (filter (factor? number %) (range 1 number)))
-
-
 (defn sum-factors [number]
   (reduce + (factors number)))
 
