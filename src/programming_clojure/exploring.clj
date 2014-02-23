@@ -1,4 +1,5 @@
-(ns programming-clojure.exploring)
+(ns programming-clojure.exploring
+  (:require [clojure.string :as str]))
 
 ;;; Variadic functions
 
@@ -21,23 +22,23 @@
 
 (defn split-words
   "Splits words on word boundary."
-  [str]
-  (clojure.string/split str #"\W+"))
+  [input]
+  (str/split input #"\W+"))
 
 (defn get-indexable-words-1
   "Returns indexable words from a string of text."
-  [str]
-  (filter indexable-word? (split-words str)))
+  [input]
+  (filter indexable-word? (split-words input)))
 
 (defn get-indexable-words-2
   "Variant of get-indexable-words that uses an anonymous function definition."
-  [str]
-  (filter (fn [w] (> (count w) 3)) (split-words str)))
+  [input]
+  (filter (fn [w] (> (count w) 3)) (split-words input)))
 
 (defn get-indexable-words-3
   "Variant of get-indexable-words that uses an even shorter anonymous function definition."
-  [str]
-  (filter #(> (count %) 3 ) (split-words str)))
+  [input]
+  (filter #(> (count %) 3 ) (split-words input)))
 
 (defn make-greeter
   "Returns a greeter function with the specified prefix"
@@ -46,3 +47,29 @@
 
 (def greet-with-hello (make-greeter "Hello"))
 (def greet-with-aloha (make-greeter "Aloha"))
+
+
+
+;;; Destructuring
+(defrecord Author [first-name last-name])
+
+(defn greet-author-1
+  "Greets an author by their first name, without destructuring"
+  [author]
+  (str "Hello, " (:first-name author)))
+
+(defn greet-author-2
+  "Greets an author by their first name, using destructuring to pick out :first-name"
+  [{fname :first-name}]
+  (str "Hello, " fname))
+
+(defn greet-author-3
+  "Greets an author by their first name, but also show full details, using destructuring to also bind the whole map"
+  [{fname :first-name :as author}]
+  (str "Hello, " fname " (" author ")"))
+
+(defn ellipsize
+  "Takes a string and returns the first three words, followed by ..."
+  [words]
+  (let [[first second third] (split-words words)]
+    (str/join " " [first second third "..."])))
