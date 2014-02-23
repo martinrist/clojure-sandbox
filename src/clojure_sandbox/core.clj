@@ -1,6 +1,2 @@
-(ns clojure-sandbox.core)
-
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(ns clojure-sandbox.core
+  (:require [programming-clojure.exploring :refer :all]))
