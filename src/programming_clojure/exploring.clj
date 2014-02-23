@@ -73,3 +73,15 @@
   [words]
   (let [[first second third] (split-words words)]
     (str/join " " [first second third "..."])))
+
+
+
+;;; Loop / Recur
+(defn countdown
+  "Returns a sequence counting down from the specified number"
+  [num]
+  (loop [result []
+         x num]
+    (if (zero? x)
+      result
+      (recur (conj result x) (dec x)))))
