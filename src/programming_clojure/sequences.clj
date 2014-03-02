@@ -11,3 +11,5 @@
 (defn integers-less-than
   [n]
   (take-while #(< % n) integers))
+
+()
