@@ -20,3 +20,14 @@
               (fib next (+ current next) (dec n))))]
     (fib 0N 1N n))
   )
+
+(defn recur-fibo
+  "Version of tail-fibo which using explicit self-recursion via `recur`"
+  [n]
+  (letfn [(fib
+            [current next n]
+            (if (zero? n)
+              current
+              (recur next (+ current next) (dec n))))]
+    (fib 0N 1N n))
+  )
