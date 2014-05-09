@@ -8,3 +8,15 @@
     (= n 1) 1
     :else (+ (stack-consuming-fibo (- n 1))
              (stack-consuming-fibo (- n 2)))))
+
+(defn tail-fibo
+  "'Improves' stack-consuming-fibo by moving recursive call into tail position.
+  Note that this doesn't make any difference, due to lack of automatic TCO in the JVM."
+  [n]
+  (letfn [(fib
+            [current next n]
+            (if (zero? n)
+              current
+              (fib next (+ current next) (dec n))))]
+    (fib 0N 1N n))
+  )
