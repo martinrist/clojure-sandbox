@@ -40,3 +40,8 @@
    (let [n (+ a b)]
      (lazy-seq
        (cons n (lazy-seq-fibo b n))))))
+
+(defn iterate-fibo
+  "Version of fibo that uses core sequence library functions"
+  []
+  (map first (iterate (fn [[a b]] [b (+ a b)]) [0N 1N])))
