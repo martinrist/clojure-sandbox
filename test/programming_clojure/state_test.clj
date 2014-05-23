@@ -35,7 +35,7 @@
 
   (testing "Many incrementing alters in separate transactions don't corrupt state"
     (let [r (ref 0)
-          iterations 1000000]
+          iterations 1000]
       (->> (for [x (range iterations)]
              (future (dosync (alter r inc))))
            (map deref)
@@ -49,11 +49,10 @@
         (dosync (ref-set r 99))
         (is (= @r 99)))
 
-      #_(testing "Update to >= 100 fails validation and doesn't change ref"
-        (is (thrown? IllegalStateException) (dosync (ref-set r 100)))
-        (is (= @r 99)))
-
-
-      ))
+      (testing "Update to >= 100 fails validation and doesn't change ref"
+        (try
+          (dosync (ref-set r 100))
+          (catch IllegalStateException e ()))
+        (is (= @r 99)))))
 
   )
