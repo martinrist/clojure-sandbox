@@ -68,5 +68,47 @@
 
   (testing "Update atom using swap!"
     (let [a (atom 0)]
-      (is = 1 (swap! a inc))
+      (is (= 1 (swap! a inc)))
       (is (= 1 @a)))))
+
+(defn delay-fn
+  "Takes a function `f` and a delay period in ms.  Returns a new function that sleeps for
+  `delay-ms` then invokes `f`"
+  [delay-ms f]
+  (fn [& args]
+    (Thread/sleep delay-ms)
+    (apply f args)))
+
+(deftest agent-tests
+  (testing "Updating agent asynchronously updates value"
+    (let [a (agent 0)]
+      (send a inc)
+      (Thread/sleep 100)
+      (is (= 1 @a))))
+
+  (testing "Updating agent with slow increment function eventually updates value"
+    (let [a (agent 0)]
+      (send a (delay-fn 100 inc))
+      (is (= 0 @a))
+      (Thread/sleep 200)
+      (is (= 1 @a))))
+
+  (testing "Updating agent with slow increment function and awaiting"
+    (let [a (agent 0)]
+      (send a (delay-fn 100 inc))
+      (await a)
+      (is (= 1 @a))))
+
+  (testing "Updating agent with validator function"
+    (let [a (agent 0 :validator number?)]
+      (send a (fn [_] "boo"))
+      (await-for 100 a)
+      (is (= 0 @a))
+      (is (not (nil? (agent-errors a))))
+      (clear-agent-errors a)
+      (is (nil? (agent-errors a)))
+      (send a (fn [_] 1))
+      (await-for 100 a)
+      (is (= 1 @a)))))
+
+
