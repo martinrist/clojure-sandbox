@@ -53,6 +53,20 @@
         (try
           (dosync (ref-set r 100))
           (catch IllegalStateException e ()))
-        (is (= @r 99)))))
+        (is (= @r 99))))))
 
-  )
+(deftest atom-tests
+  (testing "Deref atom gets its initial state"
+    (let [a (atom 0)]
+      (is (= 0 @a)))
+    )
+
+  (testing "Deref atom after reset! gets new state"
+    (let [a (atom nil)]
+      (is (= 1 (reset! a 1)))
+      (is (= 1 @a))))
+
+  (testing "Update atom using swap!"
+    (let [a (atom 0)]
+      (is = 1 (swap! a inc))
+      (is (= 1 @a)))))
