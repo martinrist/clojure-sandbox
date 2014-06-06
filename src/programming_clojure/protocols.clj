@@ -1,4 +1,4 @@
-(ns programming-clojure.protocols-and-datatypes
+(ns programming-clojure.protocols
   (:import (java.lang StringBuilder)
            (java.io FileInputStream InputStreamReader BufferedReader FileOutputStream
                     OutputStreamWriter BufferedWriter InputStream OutputStream File)
