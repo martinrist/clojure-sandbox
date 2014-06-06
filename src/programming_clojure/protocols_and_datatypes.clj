@@ -3,13 +3,24 @@
            (java.io FileInputStream InputStreamReader BufferedReader FileOutputStream
                     OutputStreamWriter BufferedWriter)))
 
+(defn make-reader
+  [src]
+  (-> src
+      FileInputStream.
+      InputStreamReader.
+      BufferedReader.))
+
+(defn make-writer
+  [src]
+  (-> src
+      FileOutputStream.
+      OutputStreamWriter.
+      BufferedWriter.))
+
 (defn gulp
   [src]
   (let [sb (StringBuilder.)]
-    (with-open [reader (-> src
-                           FileInputStream.
-                           InputStreamReader.
-                           BufferedReader.)]
+    (with-open [reader (make-reader src)]
       (loop [c (.read reader)]
         (if (neg? c)
           (str sb)
@@ -19,10 +30,7 @@
 
 (defn expectorate
   [dst content]
-  (with-open [writer (-> dst
-                         FileOutputStream.
-                         OutputStreamWriter.
-                         BufferedWriter.
-                         )]
+  (with-open [writer (make-writer dst)]
     (.write writer (str content))))
+
 
