@@ -19,8 +19,8 @@
 
 (defmethod my-print Integer
            [i]
-  (my-print (str "Integer: " (.toString i)))
-  )
+  (my-print (str "Integer: " (.toString i))))
+
 (defmethod my-print Collection
            [coll]
   (my-print "(")
@@ -32,6 +32,8 @@
   (my-print "[")
   (my-print (str/join " " vec))
   (my-print "]"))
+
+(prefer-method my-print IPersistentVector Collection)
 
 (defmethod my-print :default
            [s]
