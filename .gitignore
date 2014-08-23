@@ -1,5 +1,5 @@
 /target
 .DS_Store
 .nrepl-port
-.idea/workspace.xml
-.idea/replstate.xml
+.idea
+*.iml
