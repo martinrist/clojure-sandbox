@@ -1,4 +1,4 @@
-(ns clojure-sandbox.interop
+(ns clojure-sandbox.joy-of-clojure.interop
   (:require [clojure.java.io :as io]
             [clojure.string :as string])
   (:import [com.sun.net.httpserver HttpHandler

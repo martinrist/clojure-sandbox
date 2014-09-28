@@ -1,4 +1,4 @@
-(ns clojure-sandbox.units)
+(ns clojure-sandbox.joy-of-clojure.units)
 
 (def simple-metric {:meter 1,
                     :metre 1,

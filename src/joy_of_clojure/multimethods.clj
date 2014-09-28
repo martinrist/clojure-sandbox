@@ -1,4 +1,4 @@
-(ns clojure-sandbox.multimethods
+(ns clojure-sandbox.joy-of-clojure.multimethods
   (:refer-clojure :exclude [get]))
 
 (defn beget
