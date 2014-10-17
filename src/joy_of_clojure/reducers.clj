@@ -47,3 +47,22 @@
   (fn map-transform [reducing-fn]
     (fn [result input]
       (reducing-fn result (map-fn input)))))
+
+(defn filtering
+  "Transformer constructor that returns a reducing function
+  that filters according to `pred`"
+  [filter-pred]
+  (fn filter-transform [reducing-fn]
+    (fn [result input]
+      (if (filter-pred input)
+        (reducing-fn result input)
+        result))))
+
+(defn mapcatting
+  "Transformer constructor that captures the essence of the
+  map-cat operation.  `map-fn` is expected to return a reducible."
+  [map-fn]
+  (fn [reducing-fn]
+    (fn [result input]
+      (let [reducible (map-fn input)]
+        (reducible reducing-fn result)))))
