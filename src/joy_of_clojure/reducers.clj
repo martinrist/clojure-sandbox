@@ -66,3 +66,19 @@
     (fn [result input]
       (let [reducible (map-fn input)]
         (reducible reducing-fn result)))))
+
+(defn r-map
+  "Reducible transformer that converts `reducible` into a new
+  reducible whose reducing function is passed through the
+  reducing function transformer `(mapping mapping-fn)`."
+  [mapping-fn reducible]
+  (fn new-reducible [reducing-fn init]
+    (reducible ((mapping mapping-fn) reducing-fn) init)))
+
+(defn r-filter
+  "Reducible transformer that converts `reducible` into a new
+  reducible whose reducing function is passed through the
+  reducing function transformer `(filtering filter-pred)`."
+  [filter-pred reducible]
+  (fn new-reducible [reducing-fn init]
+    (reducible ((filtering filter-pred) reducing-fn) init)))
