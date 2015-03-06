@@ -85,8 +85,8 @@
         b (inc a)]
     (* a b)))
 
-(f 1)        ; => 2
-(f nil)      ; => Null Pointer Exception - we want nil
+(f 1)         ; => 2
+;(f nil)      ; => Null Pointer Exception - we want nil
 
 
 
@@ -111,6 +111,112 @@
   (if (nil? val)
     nil
     (f val)))
+
+
+
+
+
+
+;; Part 2 - https://github.com/khinsen/monads-in-clojure/blob/master/PART2.md
+
+; Another frequently-used monad is the sequence monad 9or list monad).  It's
+; built into Clojure as the `for` form:
+
+(for [a (range 5)
+      b (range a)]
+  (* a b))
+
+; => (0 0 2 0 3 6 0 4 8 12)
+
+; This is very similar to the `let` form, except `let` binds a single value
+; to each symbol, whereas `for` binds several values in sequence.
+
+
+
+; The monadic form of the above loop is written as:
+
+(domonad sequence-m
+         [a (range 5)
+          b (range a)]
+         (* a b))
+
+
+; So, the questions is 'how do we write m-bind and m-result for the sequence
+; monad?'
+
+; m-bind calls a function of one argument that represents the rest of the
+; computation, with the function argument representing the bound variable.
+; Here the bound variable is a sequence, so an initial naive implementation
+; might use `map`.
+
+(defn m-bind-sequence-1
+  [seq f]
+  (map f seq))
+
+(m-bind-sequence-1 (range 5) (fn [a]
+(m-bind-sequence-1 (range a) (fn [b]
+(* a b)))))
+
+; => (() (0) (0 2) (0 3 6) (0 4 8 12))
+
+; We have an extra level of sequence, that needs to get removed
+
+
+(defn m-bind-sequence-2
+  [seq f]
+  (apply concat (map f seq)))
+
+(m-bind-sequence-2 (range 5) (fn [a]
+(m-bind-sequence-2 (range a) (fn [b]
+(* a b)))))
+
+; => IllegalArgumentException Don't know how to create ISeq from: java.lang.Long  clojure.lang.RT.seqFrom (RT.java:505)
+
+
+
+; The problem here is that we can't apply `concat` to the result of applying
+; `map f seq` where the return values of `f` are just primitive values:
+
+(map (fn [b] (* 4 b)) (range 4))       ; => (0 4 8 12)
+(apply concat '(0 4 8 12))             ; => IllegalArgumentException
+
+
+; Instead we need to wrap each primitive return value in a single-value list:
+(apply concat '( (0) (4) (8) (12) ))   ; => (0 4 8 12), as required
+
+
+
+; We can do this using:
+
+(m-bind-sequence-2 (range 5) (fn [a]
+(m-bind-sequence-2 (range a) (fn [b]
+(list (* a b))))))
+
+
+
+; This is the sequence monad, where:
+
+(defn m-bind-sequence
+  [seq f]
+  (apply concat (map f seq)))
+
+(defn m-result-sequence
+  [val]
+  (list val))
+
+
+
+
+
+
+; Terminology:
+; - monadic value - [1 2 3]
+; - monadic function - function that accepts a value and returns a monadic value
+;
+; m-bind's first argument must be a monadic value
+
+
+
 
 
 
