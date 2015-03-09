@@ -1,4 +1,5 @@
-(ns clojure-sandbox.validation)
+(ns clojure-sandbox.validation
+  (:require [clojure.algo.monads :refer :all]))
 
 
 (defn size-valid?
@@ -19,9 +20,7 @@
     (if (contents-valid? coll)
       (println "Contents are all valid" coll)
       (println "Something in" coll "isn't valid"))
-    (println coll "is too large"))
-
-  )
+    (println coll "is too large")))
 
 
 (defn default-false
@@ -78,6 +77,8 @@
       [nil (str "Collection has more elements than allowed (" size ">" limit ")")]
       [coll nil])))
 
+(def validate-size-5 (partial validate-size 5))
+
 (defn validate-contents
   "Validate that all the members of `coll` satisfy `pred`"
   [pred coll]
@@ -86,41 +87,44 @@
     [coll nil]
     [nil "Validation failed for a member of the collection"]))
 
-(defn validate-and-perform
+(def validate-contents-pos (partial validate-contents pos?))
+
+
+(defn validate-and-perform-1
   "First attempt at chaining validations together.  Note the repeated pattern
   of (if (nil? err) (...) [nil err]"
   [coll]
   (let [[coll err] (validate-not-empty coll)
-        [coll err] (if (nil? err) (validate-size 5 coll) [nil err])
-        [coll err] (if (nil? err) (validate-contents pos? coll) [nil err])]
+        [coll err] (if (nil? err) (validate-size-5 coll) [nil err])
+        [coll err] (if (nil? err) (validate-contents-pos coll) [nil err])]
     (if (nil? err)
       (println "Collection passed all validation: " coll)
       (println "Validation failed: " err))))
 
 (defn bind-error
-  [f [val err]]
+  [[val err] f]
   (if (nil? err)
     (f val)
     [nil err]))
 
-(defn validate-and-perform
+(defn validate-and-perform-2
   "Second attempt at chaining validation, after pulling out apply-or-error"
   [coll]
   (let [result (validate-not-empty coll)
-        result (bind-error (partial validate-size 5) result)
-        [val err] (bind-error (partial validate-contents pos?) result)]
+        result (bind-error result validate-size-5)
+        [val err] (bind-error result validate-contents-pos)]
     (if (nil? err)
       (println "Collection passed all validation: " val)
       (println "Validation failed: " err))))
 
 
-(defn validate-and-perform
+(defn validate-and-perform-3
   "Third attempt at chaining validation - as above but using ->>"
   [coll]
-  (let [[val err] (->> coll
+  (let [[val err] (-> coll
                        validate-not-empty
-                       (bind-error (partial validate-size 5))
-                       (bind-error (partial validate-contents pos?)))]
+                       (bind-error validate-size-5)
+                       (bind-error validate-contents-pos))]
     (if (nil? err)
       (println "Collection passed all validation: " val)
       (println "Validation failed: " err))))
@@ -130,21 +134,57 @@
 (defmacro err->>
   [val & fns]
   (let [fns (for [f fns] `(bind-error ~f))]
-    `(->> [~val nil]
+    `(-> [~val nil]
           ~@fns)))
 
 
-(defn validate-and-perform
+(defn validate-and-perform-4
   "Fourth attempt at chaining validation using err->>"
   [coll]
   (let [[val err] (err->> coll
                           validate-not-empty
-                          (partial validate-size 5)
-                          (partial validate-contents pos?))]
+                          validate-size-5
+                          validate-contents-pos)]
     (if (nil? err)
       (println "Collection passed all validation: " val)
-      (println "Validation failed: " err))
+      (println "Validation failed: " err))))
 
-    )
 
-  )
+
+; Validation using an error monad.
+; The monadic type takes the form of a tuple [val err].
+;
+; Each validation function is therefore a monadic function from the raw value to
+; the tuple [val err]
+
+(defn result-error
+  [val]
+  [val nil])
+
+(defn bind-error
+  [[val err] f]
+  (if (nil? err)
+    (f val)
+    [nil err]))
+
+
+(defmonad error-m
+          [m-result   result-error
+           m-bind     bind-error])
+
+
+(defn validate-and-perform-5
+  [coll]
+  (domonad error-m
+           [coll  (validate-not-empty coll)
+            coll  (validate-size 5 coll)
+            coll  (validate-contents pos? coll)]
+           coll))
+
+
+
+(def validate-and-perform-6
+  (with-monad error-m
+              (m-chain [validate-not-empty
+                        validate-size-5
+                        validate-contents-pos])))
