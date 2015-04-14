@@ -6,4 +6,5 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [prismatic/plumbing "0.2.0"]
                  [incanter/incanter "1.5.5"]
-                 [org.clojure/algo.monads "0.1.5"]])
+                 [org.clojure/algo.monads "0.1.5"]]
+  :repl-options {:port 4001})
