@@ -93,3 +93,24 @@
   (testing "using records"
     (is (s/valid? :unq/person (->Person "Martin" "Rist" "me@example.com" nil)))
     (is (not (s/valid? :unq/person (->Person "Martin" "Rist" "me@example.com" :not-a-phone))))))
+
+
+
+(deftest multi-specs "http://clojure.org/guides/spec#_multi_spec"
+
+  (testing "search event messages"
+    (is (s/valid? :event/event {:event/type       :event/search
+                                :event/timestamp  12345
+                                :search/url       "http://www.example.com"}))
+
+    (is (not (s/valid? :event/event {:event/type      :event/search
+                                     :event/timestamp 12345}))))
+
+  (testing "error messages"
+    (is (s/valid? :event/event {:event/type       :event/error
+                                :event/timestamp  12345
+                                :error/code       666
+                                :error/message    "Miscellaneous error"}))
+    (is (not (s/valid? :event/event {:event/type      :event/error
+                                     :event/timestamp 12345
+                                     :error/code      :not-an-error-code})))))

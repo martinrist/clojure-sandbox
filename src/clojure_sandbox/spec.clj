@@ -28,3 +28,27 @@
                            :opt-un [::phone]))
 
 (defrecord Person [first-name last-name email phone])
+
+
+; Using a multi-spec to support a 'type' tag on maps
+
+; `:event/type` is a tag for the type of the event
+; Specs will use this value as a way of determining the validation rules to apply
+(s/def :event/type keyword?)
+(defmulti event-type :event/type)
+
+; `:event/timestamp` is a common key, used by all events
+(s/def :event/timestamp int?)
+
+; events of type `:event/search` require the common and `:search/url` keys
+(s/def :search/url string?)
+(defmethod event-type :event/search [_]
+  (s/keys :req [:event/type :event/timestamp :search/url]))
+
+; events of type `:event/message` require the common and two `:error/` keys
+(s/def :error/message string?)
+(s/def :error/code int?)
+(defmethod event-type :event/error [_]
+  (s/keys :req [:event/type :event/timestamp :error/code :error/message]))
+
+(s/def :event/event (s/multi-spec event-type :event/type))
