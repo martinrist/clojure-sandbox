@@ -87,3 +87,39 @@
         :ret    (s/fspec :args (s/cat :y number?)
                          :ret number?)
         :fn     #(= (-> % :args :x) ((:ret %) 0)))
+
+
+;; A more complete set of specs to model a game of cards
+(def suit? #{:heart :club :diamond :spade})
+(def rank? (into #{:jack :queen :king :ace} (range 2 11)))
+(def deck (for [suit suit? rank rank?] [rank suit]))
+
+(s/def ::card (s/tuple rank? suit?))
+(s/def ::hand (s/* ::card))
+
+(s/def ::name string?)
+(s/def ::score int?)
+(s/def ::player (s/keys :req [::name ::score ::hand]))
+
+(s/def ::players (s/* ::player))
+(s/def ::deck (s/* ::card))
+(s/def ::game (s/keys :req [::players ::deck]))
+
+(defn total-cards
+  "Counts up the total number of cards afer the deal"
+  [{:keys [::deck ::players] :as game}]
+  (apply + (count deck)
+         (map #(-> % ::hand count) players)))
+
+(defn deal
+  [game]
+  ; Implementation omitted
+  )
+
+; Function spec that enforces that the total number of
+; cards must be the same before and after dealing
+(s/fdef deal
+        :args (s/cat :game ::game)
+        :ret  ::game
+        :fn   #(= (total-cards (-> %:args :game))
+                  (total-cards (-> % :ret))))

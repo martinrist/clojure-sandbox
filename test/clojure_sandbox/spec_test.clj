@@ -133,3 +133,14 @@
   (testing "maps"
     (is (s/valid? (s/map-of keyword? int?) {:foo 1 :bar 2}))
     (is (not (s/valid? (s/map-of keyword? int?) {:foo :blort :bar 2})))))
+
+
+
+(deftest card-game "http://clojure.org/guides/spec#_a_game_of_cards"
+
+  (testing "valid players"
+
+    (is (s/valid? :clojure-sandbox.spec/player
+                  #:clojure-sandbox.spec{:name  "Kenny Rogers"
+                                         :score 100
+                                         :hand  [[10 :club] [:king :heart]]}))))
