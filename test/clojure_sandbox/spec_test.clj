@@ -114,3 +114,22 @@
     (is (not (s/valid? :event/event {:event/type      :event/error
                                      :event/timestamp 12345
                                      :error/code      :not-an-error-code})))))
+
+
+(deftest collections "http://clojure.org/guides/spec#_collections"
+
+  (testing "homogeneous collections of arbitrary size"
+    (is (s/valid? (s/coll-of keyword?) [:a :b :c]))
+    (is (s/valid? (s/coll-of keyword? :kind vector?) [:a :b :c]))
+    (is (s/valid? (s/coll-of keyword? :kind list?) (list :a :b :c)))
+    (is (s/valid? (s/coll-of number? :count 3) [1 2 3]))
+    (is (not (s/valid? (s/coll-of number? :count 3) [1 2])))
+    (is (not (s/valid? (s/coll-of number? :distinct true) [1 2 3 4 4]))))
+
+  (testing "tuples"
+    (is (s/valid? (s/tuple double? int?) [1.5, 2]))
+    (is (not (s/valid? (s/tuple double? int?) [1.5, 2.5]))))
+
+  (testing "maps"
+    (is (s/valid? (s/map-of keyword? int?) {:foo 1 :bar 2}))
+    (is (not (s/valid? (s/map-of keyword? int?) {:foo :blort :bar 2})))))
