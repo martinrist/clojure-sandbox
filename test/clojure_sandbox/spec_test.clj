@@ -20,9 +20,6 @@
       (is (s/valid? suits :hearts))
       (is (not (s/valid? suits :frogs))))))
 
-; Use `s/def` to define a registry of some basic specs
-(s/def ::date inst?)
-(s/def ::suit #{:heart :club :diamond :spade})
 
 (deftest registry "http://clojure.org/guides/spec#_registry"
 
@@ -34,7 +31,6 @@
 (deftest composing-predicates "http://clojure.org/guides/spec#_composing_predicates"
 
   (testing "composing basic predicates with `and`"
-    (s/def ::big-even (s/and int? even? #(> % 1000)))
     (is (not (s/valid? ::big-even :foo)))
     (is (not (s/valid? ::big-even 10)))
     (is (not (s/valid? ::big-even 1001)))
@@ -76,3 +72,24 @@
                     second
                     :path
                     first) :id) "Second problem is in the `:id` path")))))
+
+
+(deftest entity-maps "http://clojure.org/guides/spec#_entity_maps"
+
+  (testing "basic specs using s/keys with qualified keys"
+
+    (is (s/valid? ::person {::first-name "Martin" ::last-name "Rist" ::email "me@example.com"}) "valid")
+    (is (s/valid? ::person {::first-name "Martin" ::last-name "Rist" ::email "me@example.com" ::phone "12345678"}) "valid with optional key")
+    (is (s/valid? ::person {::first-name "Martin" ::last-name "Rist" ::email "me@example.com" ::foo ::bar}) "valid with extra keys")
+
+    (is (not (s/valid? ::person {::first-name "Martin" ::last-name "Rist"})) "missing required key")
+    (is (not (s/valid? ::person {::first-name "Martin" ::last-name "Rist" ::email "not-an-email"})) "invalid email")
+    (is (not (s/valid? ::person {::first-name "Martin" ::last-name "Rist" ::email "me@example.com" ::phone :not-a-phone})) "invalid optional key value"))
+
+  (testing "using unqualified keys"
+    (is (not (s/valid? ::person {:first-name "Martin" :last-name "Rist" :email "me@example.com"})) "invalid against qualified spec")
+    (is (s/valid? :unq/person {:first-name "Martin" :last-name "Rist" :email "me@example.com"}) "valid against unqualified spec"))
+
+  (testing "using records"
+    (is (s/valid? :unq/person (->Person "Martin" "Rist" "me@example.com" nil)))
+    (is (not (s/valid? :unq/person (->Person "Martin" "Rist" "me@example.com" :not-a-phone))))))
