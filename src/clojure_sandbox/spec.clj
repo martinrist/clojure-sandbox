@@ -52,3 +52,38 @@
   (s/keys :req [:event/type :event/timestamp :error/code :error/message]))
 
 (s/def :event/event (s/multi-spec event-type :event/type))
+
+
+; An example of using spec for validation, wiht pre- and post-conditions
+(defn person-name
+  [person]
+  {:pre  [(s/valid? ::person person)]
+   :post [(s/valid? string? %)]}
+  (str (::first-name person " " (::last-name person))))
+
+
+; An example of using `fdef` to specify a function with specs
+; First the function definition...
+(defn ranged-rand
+  "Returns random int in range start <= rand < end"
+  [start end]
+  (+ start (long (rand (- end start)))))
+
+; ... then the spec details, which can be declared separately
+(s/fdef ranged-rand
+        :args   (s/and (s/cat :start int? :end int?)
+                       #(< (:start %) (:end %)))
+        :ret    int?
+        :fn     (s/and #(>= (:ret % (-> % :args :start)))
+                       #(< (:ret % (-> % :args :end)))))
+
+; Specs can be written for higher-order-functions
+; `adder` is a HOF which returns a function which adds `x`
+(defn adder [x] #(+ x %))
+
+; We can declare a function spec for `adder` using `s/fspec`
+(s/fdef adder
+        :args   (s/cat :x number?)
+        :ret    (s/fspec :args (s/cat :y number?)
+                         :ret number?)
+        :fn     #(= (-> % :args :x) ((:ret %) 0)))
