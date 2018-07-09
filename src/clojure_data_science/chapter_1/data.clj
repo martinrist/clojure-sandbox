@@ -3,7 +3,8 @@
             [incanter.core :as i]
             [incanter.excel :as xls]
             [incanter.stats :as s]
-            [incanter.charts :as c]))
+            [incanter.charts :as c]
+            [incanter.distributions :as d]))
 
 
 ;;; Inspecting the Data
@@ -95,8 +96,8 @@
 
 (defn variance [xs]
   "Calculate the variance of the values in `xs` - also available as `s/variance`"
-  (let [x-bar (mean xs)
-        n     (count xs)
+  (let [x-bar            (mean xs)
+        n                (count xs)
         square-deviation (fn [x]
                            (i/sq (- x x-bar)))]
     (mean (map square-deviation xs))))
@@ -186,3 +187,73 @@
       (c/histogram :x-label "UK Electorate"
                    :nbins 20)
       i/view))
+
+
+
+;; The Normal Distribution
+
+
+(defn ex-1-15 []
+  "Plot a histogram of a uniform distribution"
+  (let [xs (->> (repeatedly rand)
+                (take 10000))]
+    (-> (c/histogram xs
+                     :x-label "Uniform distribution"
+                     :nbins 20)
+        i/view)))
+
+(defn ex-1-16 []
+  "Plot a histogram of the distribution of means"
+  (let [xs (->> (repeatedly rand)
+                (partition 10)
+                (map mean)
+                (take 10000))]
+    (-> (c/histogram xs
+                     :x-label "Distribution of means"
+                     :nbins 20)
+        i/view)))
+
+(defn ex-1-17 []
+  (let [distribution (d/normal-distribution)
+        xs           (->> (repeatedly #(d/draw distribution))
+                          (take 10000))]
+    (-> (c/histogram xs
+                     :x-label "Normal distribution"
+                     :nbins 20)
+        i/view)))
+
+
+
+;; Poincaré's Baker
+
+(defn honest-baker [mean sd]
+  "An honest baker who distributes loaves according to a normal distribution"
+  (let [distribution (d/normal-distribution mean sd)]
+    (repeatedly #(d/draw distribution))))
+
+(defn ex-1-18 []
+  "Plot a histogram of bread weights from an honest baker"
+  (-> (take 10000 (honest-baker 1000 30))
+      (c/histogram :x-label "Honest baker"
+                   :nbins 25)
+      i/view))
+
+(defn dishonest-baker [mean sd]
+  "A dishonest baker who only distributes the heaviest of each baker's dozen"
+  (let [distribution (d/normal-distribution mean sd)]
+    (->> (repeatedly #(d/draw distribution))
+         (partition 13)
+         (map (partial apply max)))))
+
+(defn ex-1-19 []
+  "Plot a histogram of bread weights from a dishonest baker"
+  (-> (take 10000 (dishonest-baker 950 30))
+      (c/histogram :x-label "Dishonest baker"
+                   :nbins 25)
+      i/view))
+
+(defn ex-1-20 []
+  (let [weights (take 10000 (dishonest-baker 950 30))]
+    {:mean     (mean weights)
+     :median   (median weights)
+     :skewness (s/skewness weights)}))
