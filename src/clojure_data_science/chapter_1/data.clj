@@ -252,8 +252,129 @@
                    :nbins 25)
       i/view))
 
+
+
+;; Skewness
+
 (defn ex-1-20 []
+  "Display statistics about the dishonest baker"
   (let [weights (take 10000 (dishonest-baker 950 30))]
     {:mean     (mean weights)
      :median   (median weights)
      :skewness (s/skewness weights)}))
+
+(defn ex-1-21 []
+  "Plot the Q-Q plot for the honest baker, plotting actual quartiles against those
+   for a normal distribution"
+  (->> (honest-baker 1000 30)
+       (take 10000)
+       c/qq-plot
+       i/view))
+
+(defn ex-1-22 []
+  "Plot the Q-Q plot for the dishonest baker.  The curve indicates positive
+   skew in the distribution"
+  (->> (dishonest-baker 950 30)
+       (take 10000)
+       c/qq-plot
+       i/view))
+
+
+
+;; Comparative Visualisations
+
+(defn ex-1-22 []
+  "Plot a box-and-whisker plot for the honest and dishonest bakers"
+  (-> (c/box-plot (->> (honest-baker 1000 30)
+                       (take 10000))
+                  :legend true
+                  :y-label "Loaf weight (g)"
+                  :series-label "Honest baker")
+      (c/add-box-plot (->> (dishonest-baker 950 30)
+                           (take 10000))
+                      :series-label "Dishonest baker")
+      i/view))
+
+
+
+(defn ex-1-23 []
+  "Plot distribution against CDF for the honest and dishonest bakers"
+  (let [sample-honest    (->> (honest-baker 1000 30)
+                              (take 1000))
+        sample-dishonest (->> (dishonest-baker 950 30)
+                              (take 1000))
+        ecdf-honest      (s/cdf-empirical sample-honest)
+        ecdf-dishonest   (s/cdf-empirical sample-dishonest)]
+    (-> (c/xy-plot sample-honest (map ecdf-honest sample-honest)
+                   :x-label "Loaf Weight"
+                   :y-label "Probability"
+                   :legend true
+                   :series-label "Honest baker")
+        (c/add-lines sample-dishonest
+                     (map ecdf-dishonest sample-dishonest)
+                     :series-label "Dishonest baker")
+        i/view)))
+
+
+
+;; Visualising Electoral Data
+
+(defn ex-1-24 []
+  "Plot fitted and empirical CDFs for electorate data"
+  (let [electorate (->> (load-data :uk-scrubbed)
+                        (i/$ "Electorate"))
+        ecdf (s/cdf-empirical electorate)
+        fitted (s/cdf-normal electorate
+                             :mean (s/mean electorate)
+                             :sd   (s/sd electorate))]
+    (-> (c/xy-plot electorate fitted
+                   :x-label "Electorate"
+                   :y-label "Probability"
+                   :series-label "Fitted"
+                   :legend true)
+        (c/add-lines electorate (map ecdf electorate)
+                     :series-label "Empirical")
+        i/view)))
+
+(defn ex-1-25 []
+  "Show a Q-Q plot which shows the left-skew (i.e. smaller constituencies)"
+  (->> (load-data :uk-scrubbed)
+       (i/$ "Electorate")
+       c/qq-plot
+       i/view))
+
+
+
+;; Adding Columns
+
+; There are various ways of changing columns in Incanter:
+; - `i/replace-column` - replace contents of column with sequence
+; - `i/transform-column` - replace contents of column by applying function
+; - `i/add-column` - add new column with sequence
+; - `i/add-derived-column` - add new column by applying function
+
+(defn ex-1-26 []
+  "Attempt to derive `:victors` by adding values.  This fails because of some non-numeric data"
+  (->> (load-data :uk-scrubbed)
+       (i/add-derived-column :victors [:Con :LD] +)))
+
+(defn ex-1-27 []
+  "Show records with blank values for 'Con' or 'LD'"
+  (->> (load-data :uk-scrubbed)
+       (i/$where #(not-any? number? [(% "Con") (% "LD")]))
+       (i/$ [:Region :Electorate :Con :LD])))
+
+(defmethod load-data :uk-victors [_]
+  (->> (load-data :uk-scrubbed)
+       (i/$where {:Con {:$fn number?} :LD {:$fn number?}})
+       (i/add-derived-column :victors [:Con :LD] +)
+       (i/add-derived-column :victors-share [:victors :Votes] /)
+       (i/add-derived-column :turnout [:Votes :Electorate] /)))
+
+(defn ex-1-28 []
+  "Plot a QQ-plot of the 'Victors Share', which illustrates 'light tails'
+  vs a normal distribution"
+  (->> (load-data :uk-victors)
+       (i/$ :victors-share)
+       c/qq-plot
+       i/view))
