@@ -1,0 +1,1 @@
+[![Build Status](https://travis-ci.org/martinrist/clojure-sandbox.svg?branch=master)](https://travis-ci.org/martinrist/clojure-sandbox)
