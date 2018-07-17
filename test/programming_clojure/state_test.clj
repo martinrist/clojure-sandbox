@@ -1,4 +1,4 @@
-(ns clojure-sandbox.state-test
+(ns programming-clojure.state-test
   (:require [clojure.test :refer :all]))
 
 (deftest ref-tests
@@ -97,18 +97,6 @@
     (let [a (agent 0)]
       (send a (delay-fn 100 inc))
       (await a)
-      (is (= 1 @a))))
-
-  (testing "Updating agent with validator function"
-    (let [a (agent 0 :validator number?)]
-      (send a (fn [_] "boo"))
-      (await-for 100 a)
-      (is (= 0 @a))
-      (is (not (nil? (agent-errors a))))
-      (clear-agent-errors a)
-      (is (nil? (agent-errors a)))
-      (send a (fn [_] 1))
-      (await-for 100 a)
       (is (= 1 @a)))))
 
 
